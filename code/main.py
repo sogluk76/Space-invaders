@@ -8,6 +8,51 @@ from laser import Laser
  
 class Game:
 
+	def replay(self):
+
+		# Initialisation du jeu
+		self.waiting = True
+		self.is_victory = False
+		self.level = 1
+		
+		# Player setup
+		player_sprite = Player((screen_width / 2,screen_height),screen_width,5)
+		self.player = pygame.sprite.GroupSingle(player_sprite)
+		self.font_title = pygame.font.Font('./font/space_invaders.ttf', 50)
+		self.font_info = pygame.font.Font('./font/space_invaders.ttf', 25)
+
+		# health and score setup
+		self.lives = 3
+		self.display_live = min(self.lives - 1, 5)
+		self.live_surf = pygame.image.load('./graphics/player.png').convert_alpha()
+		self.live_x_start_pos = screen_width - ((self.live_surf.get_size()[0] + 10) * self.display_live)
+		self.score = 0
+		self.highscore = 0
+		self.font = pygame.font.Font('./font/space_invaders.ttf',15)
+
+		# Obstacle setup
+		self.shape = obstacle.shape
+		self.block_size = 6
+		self.blocks = pygame.sprite.Group()
+		self.obstacle_amount = 4
+		self.obstacle_x_positions = [num * (screen_width / self.obstacle_amount) for num in range(self.obstacle_amount)]
+		self.create_multiple_obstacles(*self.obstacle_x_positions, x_start = screen_width / 15, y_start = 480)
+
+		# Alien setup
+		self.aliens = pygame.sprite.Group()
+		self.alien_lasers = pygame.sprite.Group()
+		self.alien_setup(rows = 6, cols = 8)
+		self.alien_direction = 1
+
+		# Extra setup
+		self.extra = pygame.sprite.GroupSingle()
+		self.extra_spawn_time = randint(40,80)
+
+		# name and Icon
+		pygame.display.set_caption("Space Invader")
+		self.icon = pygame.image.load('./graphics/ufo.png')
+		pygame.display.set_icon(self.icon)
+
 	def reset_game_for_next_level(self):
 
 		# Player setup
@@ -44,12 +89,15 @@ class Game:
 	def __init__(self):
 
 		# Initialisation du jeu
+		self.waiting = True
 		self.is_victory = False
 		self.level = 1
 		
 		# Player setup
 		player_sprite = Player((screen_width / 2,screen_height),screen_width,5)
 		self.player = pygame.sprite.GroupSingle(player_sprite)
+		self.font_title = pygame.font.Font('./font/space_invaders.ttf', 50)
+		self.font_info = pygame.font.Font('./font/space_invaders.ttf', 25)
 
 		# health and score setup
 		self.lives = 3
@@ -85,7 +133,11 @@ class Game:
 		self.laser_sound = pygame.mixer.Sound('./audio/laser.wav')
 		self.laser_sound.set_volume(0.2)
 		self.explosion_sound = pygame.mixer.Sound('./audio/explosion.wav')
-		self.explosion_sound.set_volume(0.1)
+		self.explosion_sound.set_volume(0.4)
+		self.explosion_ship_sound = pygame.mixer.Sound('./audio/shipexplosion.wav')
+		self.explosion_ship_sound.set_volume(0.4)
+		self.explosion_extra_sound = pygame.mixer.Sound('./audio/ufo_highpitch.wav')
+		self.explosion_extra_sound.set_volume(0.4)
 
 		# name and Icon
 		pygame.display.set_caption("Space Invader")
@@ -227,30 +279,28 @@ class Game:
 						laser.kill()
 
 				# extra collision
-				Extra_hit = pygame.sprite.spritecollide(laser,self.extra,True)
+				Extra_hit = pygame.sprite.spritecollide(laser, self.extra, True)
 				if Extra_hit:
 					for extra in Extra_hit:
+						extra_position = extra.rect.center
 						if self.lives >= 6:
 							self.score += extra.Evalue * 2
 							self.lives = 6
+							message_surf = self.font.render(f'+{extra.Evalue *2}', False, 'yellow')
+							message_rect = message_surf.get_rect(center=extra_position)
+							screen.blit(message_surf, message_rect)
 						else:
 							self.score += extra.Evalue
 							self.lives += 1
-					self.display_live = min(self.lives - 1, 5)
-					self.live_x_start_pos = screen_width - ((self.live_surf.get_size()[0] + 10) * self.display_live)
-					laser.kill()
+							message_surf = self.font.render(f'+{extra.Evalue}', False, 'yellow')
+							message_rect = message_surf.get_rect(center=extra_position)
+							screen.blit(message_surf, message_rect)
+						self.explosion_extra_sound.play()
+						self.display_live = min(self.lives - 1, 5)
+						self.live_x_start_pos = screen_width - ((self.live_surf.get_size()[0] + 10) * self.display_live)
+						laser.kill()
 
-				
-				# if pygame.sprite.spritecollide(laser,self.extra,True):
-				# 	if self.lives >= 6:
-				# 		self.score += 1000
-				# 		self.lives = 6
-				# 	else:
-				# 		self.score += 500
-				# 		self.lives += 1
-				# 	self.display_live = min(self.lives - 1, 5)
-				# 	self.live_x_start_pos = screen_width - ((self.live_surf.get_size()[0] + 10) * self.display_live)
-				# 	laser.kill()
+
 
 		# alien lasers 
 		if self.alien_lasers:
@@ -261,12 +311,13 @@ class Game:
 
 				if pygame.sprite.spritecollide(laser,self.player,False):
 					laser.kill()
+					self.explosion_ship_sound.play()
 					self.lives -= 1
 					self.display_live = min(self.lives - 1, 5)
 					self.live_x_start_pos = screen_width - ((self.live_surf.get_size()[0] + 10) * self.display_live)
 					if self.lives <= 0:
-						defeats_text = f"You lost to level {self.level}"
-						defeats_surf = self.font.render(defeats_text, False, 'white')
+						defeats_text = f"Game Over"
+						defeats_surf = self.font_title.render(defeats_text, False, 'white')
 						defeats_rect = defeats_surf.get_rect(center=(screen_width / 2, screen_height / 2))
 						screen.blit(defeats_surf, defeats_rect)
 						pygame.display.flip()  
@@ -278,8 +329,7 @@ class Game:
 								if event.type == pygame.QUIT:
 									pygame.quit()
 									sys.exit()
-						pygame.quit()
-						sys.exit()
+						self.replay()
 
 		# aliens
 		if self.aliens:
@@ -350,9 +400,73 @@ class Game:
 						pygame.quit()
 						sys.exit()
 			self.reset_game_for_next_level()
-						
+
+	def info_enemy(self):
+		if self.waiting == True:
+			titleText = self.font_title.render('Space Invaders', True, 'WHITE')
+			titleText_rect = titleText.get_rect(topleft=(164, 155))
+			screen.blit(titleText, titleText_rect)
+
+			titleText2 = self.font_info.render('Press enter to continue', False, 'WHITE')
+			titleText2_rect = titleText2.get_rect(topleft=(201, 225))
+			screen.blit(titleText2, titleText2_rect)
+			
+			#info enemie rouge
+			self.red = (239,79,79,112)
+			enemy1Text = self.font_info.render('   =   100 pts', False, self.red)
+			image_surf = pygame.image.load('./graphics/red.png').convert_alpha()
+			combined_surf = pygame.Surface((image_surf.get_width() + enemy1Text.get_width(), max(image_surf.get_height(), enemy1Text.get_height())), pygame.SRCALPHA)
+			combined_surf.blit(image_surf, (0, 0))
+			combined_surf.blit(enemy1Text, (image_surf.get_width(), 0))
+			enemy1Text_rect = combined_surf.get_rect(topleft=(333 - image_surf.get_width(), 270))
+			screen.blit(combined_surf, enemy1Text_rect)
+
+			#info enemie vert
+			self.green = (208,192,80,255)
+			enemy2Text = self.font_info.render('   =   200 pts', False, self.green)
+			image_surf = pygame.image.load('./graphics/green.png').convert_alpha()
+			combined_surf = pygame.Surface((image_surf.get_width() + enemy2Text.get_width(), max(image_surf.get_height(), enemy2Text.get_height())), pygame.SRCALPHA)
+			combined_surf.blit(image_surf, (0, 0))
+			combined_surf.blit(enemy2Text, (image_surf.get_width(), 0))
+			enemy2Text_rect = combined_surf.get_rect(topleft=(333 - image_surf.get_width(), 320))
+			screen.blit(combined_surf, enemy2Text_rect)
+
+			#info enemie jaune
+			self.yellow = (208,192,80,255)
+			enemy3Text = self.font_info.render('   =   400 pts', False, self.yellow)
+			image_surf = pygame.image.load('./graphics/yellow.png').convert_alpha()
+			combined_surf = pygame.Surface((image_surf.get_width() + enemy3Text.get_width(), max(image_surf.get_height(), enemy3Text.get_height())), pygame.SRCALPHA)
+			combined_surf.blit(image_surf, (0, 0))
+			combined_surf.blit(enemy3Text, (image_surf.get_width(), 0))
+			enemy1Text_rect = combined_surf.get_rect(topleft=(333 - image_surf.get_width(), 370))
+			screen.blit(combined_surf, enemy1Text_rect)
+
+			#info extra
+			self.blue_light = (38,211,239,255)
+			enemy4Text = self.font_info.render('   =   500 pts', False, self.blue_light)
+			image_surf = pygame.image.load('./graphics/extra.png').convert_alpha()
+			combined_surf = pygame.Surface((image_surf.get_width() + enemy4Text.get_width(), max(image_surf.get_height(), enemy4Text.get_height())), pygame.SRCALPHA)
+			combined_surf.blit(image_surf, (0, 0))
+			combined_surf.blit(enemy4Text, (image_surf.get_width(), 0))
+			enemy1Text_rect = combined_surf.get_rect(topleft=(333 - image_surf.get_width(), 420))
+			screen.blit(combined_surf, enemy1Text_rect)		
+
+			# Actualisation de l'écran
+			pygame.display.flip()
+
+			# Attente de l'appui sur une touche
+			while self.waiting:
+				for event in pygame.event.get():
+					if event.type == pygame.KEYDOWN:
+						self.waiting = False
+					elif event.type == pygame.QUIT:
+						pygame.quit()
+						sys.exit()
+	
+
 
 	def run(self):
+		self.info_enemy()
 		self.player.update()
 		self.alien_lasers.update()
 		self.extra.update()
