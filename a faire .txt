@@ -4,3 +4,4 @@
 4. écran acceuil
 5. score kill enemies
 6. trucs quand tu perd une vie
+7. niveau difficulté

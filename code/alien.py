@@ -22,6 +22,7 @@ class Extra(pygame.sprite.Sprite):
 	def __init__(self,side,screen_width):
 		super().__init__()
 		self.image = pygame.image.load('./graphics/extra.png').convert_alpha()
+		self.Evalue = 500
 		
 		if side == 'right':
 			x = screen_width + 50
