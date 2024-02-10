@@ -228,8 +228,14 @@ class Game:
 
 				# extra collision
 				if pygame.sprite.spritecollide(laser,self.extra,True):
-					self.score += 500
-					self.lives += 1
+					print(self.lives)
+					if self.lives >= 6:
+						self.score += 1000
+						self.lives = 6
+					else:
+						self.score += 500
+						self.lives += 1
+						print(self.lives)
 					self.display_live = min(self.lives - 1, 5)
 					self.live_x_start_pos = screen_width - ((self.live_surf.get_size()[0] + 10) * self.display_live)
 					laser.kill()
@@ -357,6 +363,7 @@ class Game:
 		self.check_for_highscore()
 		self.load_highscore()
 		self.display_highscore()
+		print(self.lives)
 
 class CRT:
 	def __init__(self):
