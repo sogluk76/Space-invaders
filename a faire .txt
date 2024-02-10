@@ -1,0 +1,6 @@
+1. mettre correctemet tout les scores ✓ 
+2. change la taille scores ✓
+3. animations explosion
+4. écran acceuil
+5. score kill enemies
+6. trucs quand tu perd une vie
