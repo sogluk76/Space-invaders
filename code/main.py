@@ -157,6 +157,8 @@ class Game:
 		self.explosion_ship_sound.set_volume(0.4)
 		self.explosion_extra_sound = pygame.mixer.Sound('./audio/ufo_highpitch.wav')
 		self.explosion_extra_sound.set_volume(0.4)
+		self.spawn_extra = pygame.mixer.Sound('./audio/ufo_spawn.wav')
+		self.spawn_extra.set_volume(0.4)
 
 		# name and Icon
 		pygame.display.set_caption("Space Invader")
@@ -275,6 +277,7 @@ class Game:
 		if self.extra_spawn_time <= 0:
 			self.extra.add(Extra(choice(['right','left']),screen_width))
 			self.extra_spawn_time = randint(400,800)
+			self.spawn_extra.play()
 
 	def collision_checks(self):
 
