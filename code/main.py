@@ -101,14 +101,18 @@ class Game:
 		#display message extra
 		self.extra_kill = False
 		self.one_extra = True
+
+		#display player hit
+		self.player_hit = False
+		self.one_player_hit = True
 		
 		# Player setup
 		player_sprite = Player((screen_width / 2,screen_height),screen_width,5)
 		self.player = pygame.sprite.GroupSingle(player_sprite)
 
 		# Player collision setup
-		PlayerColl_sprite = PlayerColl((screen_width / 2,screen_height),screen_width,5)
-		self.PlayerColl = pygame.sprite.GroupSingle(PlayerColl_sprite)
+		playerColl_sprite = PlayerColl((screen_width / 2,screen_height),screen_width,5)
+		self.playerColl = pygame.sprite.GroupSingle(playerColl_sprite)
 
 		# font setup
 		self.font_title = pygame.font.Font('./font/space_invaders.ttf', 50)
@@ -339,6 +343,8 @@ class Game:
 					self.lives -= 1
 					self.display_live = min(self.lives - 1, 5)
 					self.live_x_start_pos = screen_width - ((self.live_surf.get_size()[0] + 10) * self.display_live)
+					#for display player damage
+					self.player_hit = True
 					if self.lives <= 0:
 						defeats_text = f"Game Over"
 						defeats_surf = self.font_title.render(defeats_text, False, 'white')
@@ -394,6 +400,23 @@ class Game:
 			else:
 				self.extra_kill = False
 				self.one_extra = True
+	
+	def display_damage(self):
+
+		
+		if self.player_hit:
+			if self.one_player_hit:
+				self.one_player_hit = False
+				self.start_time = pygame.time.get_ticks()
+			if pygame.time.get_ticks() - self.start_time < 1000 :  
+				self.playerColl.draw(screen)
+			else:
+				self.player_hit = False
+				self.one_player_hit = True
+				self.player.draw(screen)
+		else:
+			self.player.draw(screen)
+
 
 	def display_lives(self):
 
@@ -440,7 +463,7 @@ class Game:
 
 	def victory_message(self):
 		if not self.aliens.sprites():
-			victory_text = f"You won wave {self.level}"
+			victory_text = f"You defeated wave {self.level}"
 			victory_surf = self.font_title.render(victory_text, False, 'white')
 			victory_rect = victory_surf.get_rect(center=(screen_width / 2, screen_height / 2))
 			screen.blit(victory_surf, victory_rect)
@@ -524,6 +547,7 @@ class Game:
 		
 		self.info_enemy()
 		self.player.update()
+		self.playerColl.update()
 		self.alien_lasers.update()
 		self.extra.update()
 		
@@ -534,9 +558,9 @@ class Game:
 		
 		self.display_kill_alien()		
 		self.display_kill_extra()
+		self.display_damage()
 
 		self.player.sprite.lasers.draw(screen)
-		self.player.draw(screen)
 		self.blocks.draw(screen)
 		self.aliens.draw(screen)
 		self.alien_lasers.draw(screen)

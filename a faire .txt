@@ -3,7 +3,7 @@
 3. animations explosion
 4. écran acceuil ✓
 5. score kill enemies ✓
-6. trucs quand tu perd une vie
+6. trucs quand tu perd une vie ✓
 7. sond apparition extra 
 8. perdre si enemy bas ecran
 9. bonus
