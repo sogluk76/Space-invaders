@@ -83,7 +83,7 @@ class Game:
 		# Extra setup
 		self.extra = pygame.sprite.GroupSingle()
 		self.extra_spawn_time = randint(40,80)
-
+		
 
 
 	def __init__(self):
@@ -92,6 +92,15 @@ class Game:
 		self.waiting = True
 		self.is_victory = False
 		self.level = 1
+
+		#display message alien
+		self.alien_kill = False
+		self.one_alien = True
+
+
+		#display message extra
+		self.extra_kill = False
+		self.one_extra = True
 		
 		# Player setup
 		player_sprite = Player((screen_width / 2,screen_height),screen_width,5)
@@ -265,36 +274,45 @@ class Game:
 				# obstacle collisions
 				if pygame.sprite.spritecollide(laser,self.blocks,True):
 					laser.kill()
+				
+				if pygame.sprite.spritecollide(laser,self.alien_lasers,True):
+					laser.kill()
+					self.alien_lasers.remove()
 					
 
 				# alien collisions
 				aliens_hit = pygame.sprite.spritecollide(laser,self.aliens,False)
 				if aliens_hit:
 					for alien in aliens_hit:
+						self.alien_position = alien.rect.center
 						alien.life -= 1	
 						if alien.life <= 0:
 							self.score += alien.value
-							alien.kill()
+							#init pour message
+							self.alien_value = alien.value
+							self.alien_kill = True
 							self.explosion_sound.play()
+							alien.kill()								
 						laser.kill()
+						
 
 				# extra collision
 				Extra_hit = pygame.sprite.spritecollide(laser, self.extra, True)
 				if Extra_hit:
 					for extra in Extra_hit:
-						extra_position = extra.rect.center
+						self.extra_position = extra.rect.center
 						if self.lives >= 6:
 							self.score += extra.Evalue * 2
 							self.lives = 6
-							message_surf = self.font.render(f'+{extra.Evalue *2}', False, 'yellow')
-							message_rect = message_surf.get_rect(center=extra_position)
-							screen.blit(message_surf, message_rect)
+							#init pour message
+							self.extra_value = extra.Evalue * 2
+							self.extra_kill = True
 						else:
 							self.score += extra.Evalue
 							self.lives += 1
-							message_surf = self.font.render(f'+{extra.Evalue}', False, 'yellow')
-							message_rect = message_surf.get_rect(center=extra_position)
-							screen.blit(message_surf, message_rect)
+							#init pour message
+							self.extra_value = extra.Evalue
+							self.extra_kill = True
 						self.explosion_extra_sound.play()
 						self.display_live = min(self.lives - 1, 5)
 						self.live_x_start_pos = screen_width - ((self.live_surf.get_size()[0] + 10) * self.display_live)
@@ -339,7 +357,38 @@ class Game:
 				if pygame.sprite.spritecollide(alien,self.player,False):
 					pygame.quit()
 					sys.exit()
-	
+
+	def display_kill_alien(self):
+
+		if self.alien_kill:
+			if self.one_alien:
+				self.one_alien = False
+				self.start_time = pygame.time.get_ticks()
+
+			if pygame.time.get_ticks() - self.start_time < 300 :  
+				#afficher le message pour le score des enemy							
+				message_surf = self.font.render(f'+{self.alien_value}', False, 'yellow')
+				message_rect = message_surf.get_rect(center=self.alien_position)
+				screen.blit(message_surf, message_rect)
+			else:
+				self.alien_kill = False
+				self.one_alien = True
+
+	def display_kill_extra(self):
+
+		if self.extra_kill:
+			if self.one_extra:
+				self.one_extra = False
+				self.start_time = pygame.time.get_ticks()
+
+			if pygame.time.get_ticks() - self.start_time < 300 :  
+				message_surf = self.font.render(f'+{self.extra_value}', False, 'yellow')
+				message_rect = message_surf.get_rect(center=self.extra_position)
+				screen.blit(message_surf, message_rect)
+			else:
+				self.extra_kill = False
+				self.one_extra = True
+
 	def display_lives(self):
 
 		size_img = pygame.transform.scale(self.live_surf, (23, 23))
@@ -385,8 +434,8 @@ class Game:
 
 	def victory_message(self):
 		if not self.aliens.sprites():
-			victory_text = f"You won level {self.level}"
-			victory_surf = self.font.render(victory_text, False, 'white')
+			victory_text = f"You won wave {self.level}"
+			victory_surf = self.font_title.render(victory_text, False, 'white')
 			victory_rect = victory_surf.get_rect(center=(screen_width / 2, screen_height / 2))
 			screen.blit(victory_surf, victory_rect)
 			self.level += 1
@@ -443,7 +492,7 @@ class Game:
 
 			#info extra
 			self.blue_light = (38,211,239,255)
-			enemy4Text = self.font_info.render('   =   500 pts', False, self.blue_light)
+			enemy4Text = self.font_info.render('   =   500 pts + life', False, self.blue_light)
 			image_surf = pygame.image.load('./graphics/extra.png').convert_alpha()
 			combined_surf = pygame.Surface((image_surf.get_width() + enemy4Text.get_width(), max(image_surf.get_height(), enemy4Text.get_height())), pygame.SRCALPHA)
 			combined_surf.blit(image_surf, (0, 0))
@@ -466,6 +515,7 @@ class Game:
 
 
 	def run(self):
+		
 		self.info_enemy()
 		self.player.update()
 		self.alien_lasers.update()
@@ -476,6 +526,9 @@ class Game:
 		self.extra_alien_timer()
 		self.collision_checks()
 		
+		self.display_kill_alien()		
+		self.display_kill_extra()
+
 		self.player.sprite.lasers.draw(screen)
 		self.player.draw(screen)
 		self.blocks.draw(screen)
@@ -485,10 +538,11 @@ class Game:
 		self.display_lives()
 		self.display_score()
 		self.display_wave()
+		self.display_highscore()
 		self.victory_message()
 		self.check_for_highscore()
 		self.load_highscore()
-		self.display_highscore()
+		
 
 class CRT:
 	def __init__(self):

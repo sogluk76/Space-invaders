@@ -2,10 +2,8 @@
 2. change la taille scores ✓
 3. animations explosion
 4. écran acceuil ✓
-5. score kill enemies
+5. score kill enemies ✓
 6. trucs quand tu perd une vie
-7. niveau difficulté
-8. sond apparition extra
-9. ajout temps visualisation score
-10. colision entre balle
-11. perdre si enemy bas ecran
+7. sond apparition extra 
+8. ajout temps visualisation score
+9. perdre si enemy bas ecran
