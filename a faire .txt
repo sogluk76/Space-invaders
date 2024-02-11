@@ -5,5 +5,8 @@
 5. score kill enemies ✓
 6. trucs quand tu perd une vie
 7. sond apparition extra 
-8. ajout temps visualisation score
-9. perdre si enemy bas ecran
+8. perdre si enemy bas ecran
+9. bonus
+10. ajout max level 30
+11. ajout level inf avec difficulté en plus
+12. différent laser en fonction des dégat

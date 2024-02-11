@@ -1,6 +1,6 @@
 import pygame, sys
 from time import sleep
-from player import Player
+from player import Player, PlayerColl
 import obstacle
 from alien import Alien, Extra
 from random import choice, randint
@@ -105,6 +105,12 @@ class Game:
 		# Player setup
 		player_sprite = Player((screen_width / 2,screen_height),screen_width,5)
 		self.player = pygame.sprite.GroupSingle(player_sprite)
+
+		# Player collision setup
+		PlayerColl_sprite = PlayerColl((screen_width / 2,screen_height),screen_width,5)
+		self.PlayerColl = pygame.sprite.GroupSingle(PlayerColl_sprite)
+
+		# font setup
 		self.font_title = pygame.font.Font('./font/space_invaders.ttf', 50)
 		self.font_info = pygame.font.Font('./font/space_invaders.ttf', 25)
 
