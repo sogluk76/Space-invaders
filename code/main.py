@@ -408,7 +408,7 @@ class Game:
 			if self.one_player_hit:
 				self.one_player_hit = False
 				self.start_time = pygame.time.get_ticks()
-			if pygame.time.get_ticks() - self.start_time < 1000 :  
+			if pygame.time.get_ticks() - self.start_time < 650 :  
 				self.playerColl.draw(screen)
 			else:
 				self.player_hit = False
