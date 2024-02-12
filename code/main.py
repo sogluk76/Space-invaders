@@ -102,7 +102,7 @@ class Game:
 		self.extra_kill = False
 		self.one_extra = True
 
-		#display player hit
+		#display player hit 
 		self.player_hit = False
 		self.one_player_hit = True
 		
@@ -544,6 +544,26 @@ class Game:
 						pygame.quit()
 						sys.exit()
 	
+	def pause(self):
+		self.stop = False
+		for event in pygame.event.get():
+			if event.type == pygame.KEYDOWN:
+				if event.key == pygame.K_p:
+					self.stop = True
+
+		while self.stop:
+			defeats_text = f"Jeux en pause"
+			defeats_surf = self.font_title.render(defeats_text, False, 'white')
+			defeats_rect = defeats_surf.get_rect(center=(screen_width / 2, screen_height / 2))
+			screen.blit(defeats_surf, defeats_rect)
+			pygame.display.flip()  
+			for event in pygame.event.get():
+				if event.type == pygame.QUIT:
+					pygame.quit()
+					sys.exit()
+				elif event.type == pygame.KEYDOWN:
+					if event.key == pygame.K_p:
+						self.stop = False
 
 
 	def run(self):
@@ -562,6 +582,7 @@ class Game:
 		self.display_kill_alien()		
 		self.display_kill_extra()
 		self.display_damage()
+		self.pause()
 
 		self.player.sprite.lasers.draw(screen)
 		self.blocks.draw(screen)

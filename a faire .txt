@@ -10,3 +10,4 @@
 10. ajout max level 30
 11. ajout level inf avec difficulté en plus
 12. différent laser en fonction des dégat
+13. pause ✓
